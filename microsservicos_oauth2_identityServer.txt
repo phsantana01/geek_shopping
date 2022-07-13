@@ -1,0 +1,1039 @@
+Introdução a microsserviços:
+
+Microsserviços, é definido como um modelo arquiterural, uma alternativa para as aplicações 
+monoliticas	tradicionais;
+Na arquitetura de microsserviços as aplicações são implementadas como um conjunto de pequenos serviços,
+cada um dos quais sendo executado como um processo independente	 e cada um dos quais se comunincando com os outros
+por meio de algum tipo de protocolo bem conhecido.
+
+- Microsserviços trazem vários beneficios e riscos que devem ser considerados.
+
+Microsserviços - Nossa Definição.
+
+.São uma aplicação única, desenvolvida como um conjunto de pequenos serviços (em vez de um unico aplicativo monolitico)
+.Cada um executado o seu próprio processo (não apenas módulos/componentes dentro de um único executável)
+.E se comunicando com mecanismos leves (como HTTP e REST, ou mensagens AMQP etc)
+.Escrito, implantado, dimensionado e mantido separadamente (potencialmente em diferentes linguagens)
+.São usados para encapsular funcionalidades ou regras de negócio (em oposição ao encapsulamento natural da linguagem como pacotes, classes, jars etc)
+.Podem ser substituidos e atualizados de forma independente.
+
+
+Microsserviços x Monolitica
+
+
+. Imagine uma aplicação de carrinho de compras;
+. Métodos para:
+	- Pesquisar produtos;
+	- Catálogo de produtos;
+	- Gerenciamento de estoque;
+	- Carrinho de compras;
+	- Checkout
+	- etc 
+	
+
+
+Exemplo de uma aplicação monolitica 
+
+. Aplicação de carrinho de compras monolitico:  
+			
+			Página <----> Controllers/services/DAO's <------> Database
+
+Olhando mais fundos, encontrariamos varios controllers e varios services para cada uma das páginas da aplicação,
+Pesquisa, checkout, contato, pedido, pagamento, produto e etc.
+
+
+Desafio de aplicações Monoliticas
+
+*Com o advento da tacnologia diferentes tipos de clients agora fazem o consumo das nossas aplicações, vindos de celulares,
+smartwatchs, consoles e etc... Os controllers criados antigamente não são preparados para esses diferentes tipos do cenário.
+portanto desejamos melhorar a performance da nossa aplicação utilizando técnologias diferentes para cada caso, por exemplo:
+ElasticSearch para a pesquisa de produtos ao inves de usar um banco relacional, PayPal para os pagamentos, armazenamento mais flexivel 
+de review dos produtos em um banco noSQL como o mongodb, carrinho de compras utilizando um armazenamento chave x valor como o redis.
+
+Desse modo acaba-se tornando mais complicado encaixar todas as varias necessidades em uma unica aplicação.
+Sendo necessário ter todos os pacotes de suporte para todas essas técnologias em um único executável.
+
+
+Prós e contras da aplicação monolitica:
+
+caracteristicas: 
+
+. Um único executável da aplicação: 
+ - Fácil de compreender mas, dificil de assimilar;
+ - Deve ser escrito em uma única linguagem. 
+ 
+. Modularização de acordo com linguagem ou framework;
+ - Limitada as estruturas de linguagem(pacotes, classes, jars ,wars, functions, namespaces, frameworks etc);
+ - Diferentes serviços / tecnologias de armazenamento;
+	. RDBMS, mensageria, e-mail etc.
+
+
+Vantagens: 
+- Fácil de compreender (mas não de assimilar)
+- Fácil de tester como uma unica unidade (até certo ponto)
+- Fácil de implantar como uma única unidade. 
+- Fácil de gerenciar (até certo ponto)
+- Fácil de gerenciar mudanças (até certo ponto) 
+- Fácil de escalar (se tomarmos os devidos cuidados)
+- Complexidade gerenciada de acordo com as estruturas da linguagem
+
+Desvantagens: 
+-Estarmos presos a uma linguagem;
+	. Nossa aplicação está presa à uma única stack de tecnologia. Não temos liberdade para experimentar tecnologias
+	diferentes 
+	
+
+-Assimilação
+	. Um único desenvolverdor não consegue assimiliar uma grande base de código
+	. Uma única equipe não pode gerenciar uma única aplicação grande  ("Regra das 2 Pizzas" da Amazon)
+
+-Implantação como unidde única 
+	. Não é possivel implantar independentemente uma unica mudança em um unico componente
+	. as mudanças são "reféns" de outras mudanças 
+	
+
+Entendendo como funciona uma Arquiterura de Microsserviços:
+
+*Os microsserviços são pequenas aplicações criadas em torno de áreas funcionais individuais de um sistema;
+*Quando há a necessidade de comunicação entre esses serviços, eles se comunicam por meio de protocolos abertos, como
+HTTP por exemplo. 
+*Por serem razoavelmente pequenos e especializados em uma determinada funcionalidade, geralmente se conectam a uma 
+ou duas técnologias de persistencia, assim pondendo utilizar a linguagem ou framework mais adequado para essa 
+técnologia e situação de negocios.
+*Para evitar problemas com a comunicação direta dos cliets com os serviços, utiliza-se um componente chamdo API Gateway
+que fornece uma interface para facilitar a comunicação dos clients com os serviços, além de poder cuidar de cache e autenticação.
+
+
+Componetização por meio de serviços 
+
+-Independente das estruturas de linguagem;
+-Onde os serviços são pequenos, aplicações implantáveis de forma independente;
+-Força o design de interfaces claras;
+-Mudanças com escopo no serviço afetado.
+
+
+*Os serviços são pequenas aplicações implantáveis de forma independente 
+	- podem não possuir uma única base de código 
+	- não (necessáriamente) uma única linguagem / framework
+	
+	
+*Comunicação baseada em protocolo leves
+
+.HTP, TCP, UDP, Menssageria, etc..
+	- Payloads: JSON, BSON, XML, Protocol Buffers, etc.. 
+
+.Força o design de interfaces claras 
+
+.Arquitetura nativa para a nuvem da Netflix - comunicando-se por meio de API's 
+	- Não tem um banco de dados comum 
+	
+	
+*Os serviços englobam as necessidades de negócios 
+
+.Não é baseado em uma stack de tecnologias 
+.Fatias verticais de acordo com as funcionalidades ou regras de negócio (ou seja, carrinho, catálogo, checkout)
+.Ainda podemos ter serviços que realizam tarefas puramente técnicas (Serviço de e-mail)
+.Adequado para equipes multifuncionais 
+
+*Abaixo temos um exemplo de alguns serviços e as funcionalidades que eles disponibilizam, tornando-se um independente do outro 
+
+	  Search			   Reviews 					  Cart						  Contact		
+	PUT/search 			GET/review/123				POST/cart					GET/post/123
+						POST/review 				GET/cart/123				POST/post 
+													POST/cart/123/item
+													DELETE/cart/123
+													PUT/cart/123/item/1
+													DELETE/cart/123/item/1 
+													
+
+
+*Faceis de compreender, alterar, testar, versionar, implantar, gerenciar, refatorar ou mesmo substituir
+	- Por equipes pequenas e multifuncionais (ou mesmo individuos)
+	
+	Search    Reviews     Cart     Contact 
+	   | 		|			|		  |
+	   |		|			|		  |
+	   |		|			|		  |
+	   |________|___________|_________|__________Dev---Test---Prod
+	   
+	   
+
+
+*Persistência Poliglota 
+
+-Liberdade para usar a ferramenta mais adequada para cada serviço; 
+	.Os bancos de dados relacioanis nem sempre são a melhor escolha.
+	
+
+Vantagens dos Microsserviços
+
+. Fácil de compreender (dificil de compreender o todo) 
+. Muito facil de testar, implantar,  gerenciar, versionar e escalar serviços únicos;
+. Ciclo de mudanças desacoplado
+. Mais fácil de escalar os times de desenvolvimento;
+. liberdade para experimentar novas linguagens ou frameworks
+
+Desafios dos microsserviços
+
+. A complexidade foi movida para fora da aplicação e foi distribuida entre os microsserviços
+. Os serviços podem ficar eventualmente indisponiveis;
+	- Nunca precisamos nos preocupar com isso em aplicações monoliticas;
+	- é necessário muito mais monitoramento.
+. Chamadas remotas mais caras do que chamadas de métodos.
+. Transações: devem depender de consistência eventual adeus ACID;  ()
+. As funcionalidades estão distrubuídas por vários serviços; 
+. A Gestão de mudança torna-se um desafio diferente; 
+	- precisa considerar a interação entre os serviços 
+	- Gerenciamento de dependências/versões
+. O refactory irá depender dos Module Boundaries.
+
+
+Falácias da computação distruibuída.
+- Lista de falsas suposições sobre computação distrubuída
+
+1- A rede é confiável
+2- Latência é zero
+3- Largura de banda infinita
+4- A rede é segura
+5- A Topologia não muda 
+6- Existe um administrador
+7- Custo de transporte é zero 
+8- A rede é homogênea
+
+___________________________________________________________________________________________________________________________________________
+
+Como quebrar uma aplicação monolitica em Microsserviços
+
+. Principal ponto a se considerar deve ser a funcionalidade de negocio 
+	-De acordo com o substativo (catalog, cart, customer)
+	-De acordo com o verbo (search, checkout, shipping)
+	-SRP 
+	- Principio do contexto limitado (Bounded context)
+
+
+O quão Micro é Micro ?
+
+. O tamanho não é o fator determinante;
+	- Pequeno o suficiente para um desenvolvedor individual assimilar;
+	- Pequeno o suficiente para ser contruído e gerenciado por um time pequeno. 
+. Documentação pequena o suficiente para ler e entender;
+. Dezenas de segredos, não centenas;
+. Previsível. Fácil de experimentar.
+
+Diferenças entre Microsserviços e SOA
+
+. SOA trata da integração entre sistemas.
+	- os microsserviços atendem a aplicativos individuais.
+. SOA depende de orquestração;
+	- os microsserviços contam com coreografia
+. SOA depende de técnologia de integração inteligente, serviços burros
+	- os microsserviços contam com serviços inteligentes e tecnologia de integracao burra;
+. Considere: comandos, pipes and filters
+
+___________________________________________________________________________________________________________________________________________
+
+As notas adicionadas abaixo serão sobre novas utilidades que podem ser aplicadas a projetos do dotnet que eu ainda não conheço, ou que 
+são utilziadas de uma forma mais interessante/performatica. 
+
+*Até o momento, criamos uma solução e depois adicionamos soluction folders para separar o front-end em mvc dos microsserviços como as API's.
+Dessa forma a solução não tera o mesmo nome do primeiro projeto que criamos.
+
+**Nova forma de utilizar o automapper, criando uma classe de configuração e um metodo 
+
+  public class MappingConfig
+    {
+        public static MapperConfiguration RegisterMaps() 
+        {
+            var mappingConfig = new MapperConfiguration(config => {
+                config.CreateMap<ProductDto, Product>();
+                config.CreateMap<Product, ProductDto>();
+            });
+            return mappingConfig;
+        }
+    }
+	
+// configuring automapper
+IMapper mapper = MappingConfig.RegisterMaps().CreateMapper();
+builder.Services.AddSingleton(mapper);
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+*Até o momento, temos dois microsserviços criados, uma API para os produtos, que implementa as funcionalidades de um CRUD e faz a persistencia
+desses dados no SQLServer. é criamos um outro microsserviço que é uma aplicação Web MVC que ainda não começamos a mexer. 
+
+*A partir desse ponto, com nosso primeiro Microsserviço a API já pronta, vamos começar a trabalhar no segundo o App web MVC e depois vamos fazer
+a integração dos nossos primeiros microsserviços. 
+
+
+Preparando para consumir o microsserviço de produtos no microsserviço Web: 
+
+1 - Primeiramente definimos dentro de appsettings.json do microsserviço que vai consumir outro qual a url para a comunicação http.
+
+//appsettings.json
+
+  "ServiceUrls": {
+    "ProductAPI": "http://localhost:5097"
+  } 
+
+
+2 - Criamos uma classe chamada HttpClientExtensions, que é uma classe static que vai ser responsavel por receber as Responses das nossas chamadas http 
+e tratar de algumas funcionalidades: 
+
+**O primeiro metodo static que criamos é o ReadContentAs<T> ele retorna uma Task<T> e recebe como argumento o retorno de uma request com o HttpClient,
+que é do tipo HttpResponseMessage. 
+Basciamente esse metodo verifica o status code da response e se for um sucesso ele deserializa o json para um model e o retorna.
+
+PS: Serialize é o processo de transformar um objeto em uma stream de bytes, por exemplo, transformar uma List<T> em um JSON para manipular em algum outro
+lugar, e Deserialize é o processo inverso, transforma uma stream de bytes em um objeto.
+
+  public static class HttpClientExtensions
+    {
+        public static async Task<T> ReadContentAs<T>(
+            this HttpResponseMessage response) 
+        {
+            if (!response.IsSuccessStatusCode) throw new ApplicationException(
+                $"Something went wrong calling the Api: " +
+                $"{response.ReasonPhrase}");
+
+            var dataAsString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            return JsonSerializer.Deserialize<T>(dataAsString, 
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        }
+
+    }
+	
+
+**Agora adicionamos mais dois metodos na nossa classe static HttpClientExtensions, um para fazer a requisição post é outro para a requisição put 
+
+	//Esses metodos static retornam uma Task<HttpResponseMessage> e recebem, um HttpClient, a url e o objeto que será mandado na requisição, ou seja
+	os dados.
+	//Ambos são bem semelhantes, começamos serializando o objeto, como no metodo para a leitura dos dados da requisição, nos deserializamos o 
+	json da requisição, como vamos enviar uma requisição, precisamos serializar o objeto, para isso utilizamos JsonSerializer.Serialize() e passamos
+	como argumento o objeto/dados. Agora vamos prepar o content da requisição, utilizamos uma classe propria para isso chamada StringContent
+	e passamos nosso objeto serializado, depois definimos o cabeçalho ContentType atraves da propriedade Headers do StringContent que criamos.
+	e por fim, chamamos o metodo PostAsync() do httpClient passando a url e o content da requisição.
+
+	 private static MediaTypeHeaderValue contentType 
+            = new MediaTypeHeaderValue("application/json");
+			
+   public static Task<HttpResponseMessage> PostAsJson<T>(
+            this HttpClient httpClient, string url, T data) 
+        {
+            var dataAsString = JsonSerializer.Serialize(data);
+            var content = new StringContent(dataAsString);
+            content.Headers.ContentType = contentType;
+            return httpClient.PostAsync(url, content);
+        } 
+		
+		
+        
+        public static Task<HttpResponseMessage> PutAsJson<T>(
+            this HttpClient httpClient, string url, T data) 
+        {
+            var dataAsString = JsonSerializer.Serialize(data);
+            var content = new StringContent(dataAsString);
+            content.Headers.ContentType = contentType;
+            return httpClient.PutAsync(url, content);
+        }
+		
+**Agora, vamos entender um pouco sobre a classe HttpClient...
+
+A Classe HttpClient representa um client http na plataforma .Net que fornece uma API flexivel e extensivel para acessar tudo que for exposto
+através do HTTP. 
+A classe HttpClient é a classe principal usada para enviar e receber mensagens HTTP atraves de HttpRequestMessage e HttpResponseMessage.
+
+-Uma instância HttpClient é usada para configurar extensões, definir headers padrão, cancelar requests e mais;
+-Você pode emitir tantos pedidos quantos quiser atraves de uma única instância HttpClient;
+-HttpClients não estão vinculados a um determinado servidor HTTP ou host; você pode enviar qualquer solicitação HTTP usando a mesma instancia HttpClient;
+-Você pode derivar de HttpClient para criar clientes especializados para determinados sites ou padrões;
+-A classe HttpClient usa o novo padrão orientada a tarefa Task para lidar com as solicitações assincronas, possibilitando assim, gerenciar e coordenar 
+de forma mais fácil solicitações pendentes;
+
+Dito isso, vamos continuar com a construção do nossos serviços. 
+
+Agora que definimos dentro de HttpClientExtensions os metodos de extensão que recebem responstas HttpResponseMessage pois precisamos deserializar 
+essas respostar em objetos para retorna-los, por isso criamos metodos de extensão para Get/Post e Put, como Delete não retorna objeto, não precisamos trabalhar seu contéudo
+portanto, podemos utilizar o metodo DeleteAsync do proprio HttpClient...
+
+
+*vamos criar nossa implementação de IProductService como ProductService e implementar a interface. 
+*Depois injetar o HttpClient como dependência e criar a logica para o CRUD. 
+
+//nesse ponto começamos definindo o Path ou a Uri para  onde vamos fazer a requisição, nesse exemplo vamos definir o path e dentro da classe 
+Startup vamos relacionar a utilização do HttpClient com a classe e a interface IProductService/ProductService com o endereço da nossa Api de produtos.
+Porém isso não é obrigatorio, podemos simplesmente passar a URI completa para os metodos de HttpClient, junto com um objeto HttpContent para representar o conteúdo da requisição.
+mas para fins de aprendizado, faremos da seguinte forma. 
+
+*Definimos que o endereço na qual a API de produtos está sendo exposta é http://localhost:5000
+é definimos o Path padrão da api como api/v1/product, logo as requisições serão feitas para http://localhost:5000/api/v1/product
+como dentro da classe Startup definimos o endereço base utilizado em IProductService/ProductService para o HttpClient como o endereco http://localhost:5000,
+só precisamos informar o Path como argumento onde normalmente precisariamos passar o caminho completo da Uri. 
+
+//Add httpClient
+builder.Services.AddHttpClient<IProductService, ProductService>(c =>
+        c.BaseAddress = new Uri(builder.Configuration["ServiceUrls:ProductAPI"])
+    );
+	
+
+public class ProductService : IProductService
+    {
+        private readonly HttpClient _client;
+        public const string BASEPATH = "api/v1/product";
+
+        public ProductService(HttpClient client)
+        {
+            _client = client ?? throw new ArgumentNullException(nameof(client));
+        }
+
+        public async Task<IEnumerable<ProductModel>> FindAllProducts()
+        {
+            var response = await _client.GetAsync(BASEPATH);
+            return await response.ReadContentAs<List<ProductModel>>();
+        }
+
+        public async Task<ProductModel> FindProductbyId(long id)
+        {
+            var response = await _client.GetAsync($"{BASEPATH}/{id}");
+            return await response.ReadContentAs<ProductModel>();
+        }
+
+        public async Task<ProductModel> CreateProduct(ProductModel model)
+        {
+            var response = await _client.PostAsJson(BASEPATH, model);
+            if (response.IsSuccessStatusCode) return await response.ReadContentAs<ProductModel>();
+            else throw new Exception("Something went wrong when calling API");
+        }
+
+        public async Task<ProductModel> UpdateProduct(ProductModel model)
+        {
+            var response = await _client.PutAsJson(BASEPATH, model);
+            if (response.IsSuccessStatusCode) return await response.ReadContentAs<ProductModel>();
+            else throw new Exception("Something went wrong when calling API");
+        }
+
+        public async Task<bool> DeleteProductById(long id)
+        {
+            var response = await _client.DeleteAsync($"{BASEPATH}/{id}");
+            if (response.IsSuccessStatusCode) return await response.ReadContentAs<bool>();
+            else throw new Exception("Something went wrong when calling API");
+        }
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+**A partir desse ponto implementamos o parte do frontEnd com aspnet e razor pages, utilizando a estrutura de Controller/View juntamente com taghelpers
+
+**Basicamente o resultado foi uma página com a lista de produtos, em uma tabela, um botão para adicionar um novo produto, e em cada linha da tabela 
+além da informação sobre os produtos, ainda temos dois botões, um para editar e outro para excluir o produto.
+
+___________________________________________________________________________________________________________________________________________
+
+Autenticação com IdentityServer e OAuth2
+
+- OAuth2 é um protocolo aberto que permite autorização de forma simples e padronizada entre aplicações web, mobile e aplicações desktop.
+	.Autorização
+	.OAuth2 utiliza um acess token e a aplicação client usa esse token para acessar uma api ou endpoints;
+	.OAuth2 determina também como os endpoints serão usados em diferentes tipos de aplicações.
+	.O token que obtemos do OAuth2 é utilizado para autorização e não para autenticação, portanto só pode ser utilizado para obter acesso a API 
+	e recursos, não podemos utiliza-lo para fazer login em uma aplicação cliet. Portanto com o OAuth2 temos metade do caminho..
+	
+
+- OpenID Connect (a peça de falta em conjunto com o OAuth2) - é simplesmente uma camada de identificação no topo do protocolo OAuth2.
+	.Através do OpenID Connect uma aplicação pode receber um Identity Token além de um access token se for o caso;
+	.O OpenID Connect define como os diferentes tipos de aplicações client podem obter de forma segura um token do Identity Server.
+	.O OpenID Connect extende o OAuth2, tornando-se uma implementação sobre o OAuth2, combinando autenticação e acesso a API's combinados em um
+	unico protocolo.
+	
+
+IdentityServer 5 - Duende Identity Server
+
+- Identity Server é uma implementação do OpenID Connect e OAuth2 e é altamente otimizado para resolver  problemas de segurança comuns em aplicações
+atuais, sejam elas mobile, nativas ou mesmo aplicações web.
+	
+Terminologias do Identity Server 
+.Client -  é um componente de software que requisita um token à um IdentityServer - as vezes para autenticar um usuário
+ ou para acessar um recurso.
+
+.Api Resource - normalmente representam uma funcionalidade que um client precisa invocar - normalmente implementados através de web api'se
+
+.Identity Resource (Claims) - informações relacionadas á identidade do usuario. ex: nome, e-mail etc. 
+
+.Identity Token -> a resposta à um processo de autenticação.
+
+.Access Token -> possibilita o acesso do usuário a um API Resource.
+(o client solicita-ra o access token ao IdentityServer e em seguida esse token será encaminhada via header em cada requisição para a stack de 
+microsserviços).
+	.Os Access Token contém informações sobre o client e usuario, as API's usarão essas informações para autorizar o acesso aos seus dados 
+e funcionalidades. 	
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Como um Token de Autenticação Funciona ?
+
+. Antes de fazer qualquer request para serviços que requerem autorização é necessário fazer uma requisição de autenticação.
+
+
+
+
+							1 - POST/login
+					credenciais: email / senha
+User ---> Client --------------------------------->  Identity Server 
+			|										        |   |
+			|	2-	200 OK	 yutwrwgsaknagopdsa				|	|
+            |<______________________________________________|	|
+																|
+Stored token: yutwrwgsaknagopdsa								|
+								3- GET/profile					|
+		Open Profile View ------------------------------->		|
+				Autorizathion: Bearer yutwrwgsaknagopdsa    	|
+																|
+						4-		200 OK							|
+	Profit!	<___________________________________________________|	
+
+
+- Basciamente o Client envia as credenciais em uma requisição post para o identity server e caso as credenciais sejam verdadeiras o usuario 
+é autenticado e o identity server retorna um statusCode 200 junto com o token de autenticação. Esse token é armanezado no client e enviado 
+pelo header Autorizathion como um Bearer Token em cada requisição feita pelo client.
+
+
+Anatomia de um JSON Web Token(JWT
+
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
+eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.
+SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+
+O token jwt é composto por 3 partes que no final, são criptografadas em conjunto: o Header, o Payload e o Signature
+
+//header representa a parte que guardar informações sobre o token, como qual foi o algoritmo utilizado para criptografar, e qual o tipo de token
+Header: 
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+
+//payload guarda informações sobre o usuario, no caso as claims, também guarda outras informações, como o tempo de expiração do token e etc..
+Payload:
+{
+  "sub": "1234567890",
+  "name": "John Doe",
+  "iat": 1516239022
+}
+
+//signature é uma especie de assinatura do token e formada pelo header concatenado com o payload e concatenado com um secret que é definido na sua aplicação.
+ambos payload e header encodados com base64 e o conjunto criptografado, no exemplo baixo com HMACSHA256.
+Signature:
+
+HMACSHA256(
+  base64UrlEncode(header) + "." +
+  base64UrlEncode(payload),
+  your-256-bit-secret
+
+)
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Criando o Identity Server com o Framework Duende.
+ 
+ 
+*A principio nossos dois microsserviços já foram construidos, a API que fornece um CRUD para uma base de dados de produtos, e um Web app MVC
+que consome essa api para apresentar essas funcionalidades para o usuario. Porém precisamos restringir o acesso a essas funcionalidades a usuarios e usuarios com 
+determinadas permissões e não deixar aberto para qualquer um utilizar.
+
+
+*Para utilizar o IdentityServer vamos utilizar o framework Duende, acessando https://docs.duendesoftware.com/identityserver/v6/quickstarts/0_overview/
+e seguindo os passos para a preparação e depois acessando https://docs.duendesoftware.com/identityserver/v6/quickstarts/2_interactive/ 
+para criar os templates que iremos copiar para um novo projeto MVC dentro da nossa solução que será reponsavel pelo identity server.
+os arquivos são criados com o comando "dotnet new isui" e as views devem ser copiadas para a pasta view, enquanto o restante que não tiver nada a ver com views
+pode ser copiado para a pasta MainModule, que é o nome que utilizamos para renomear a pasta Controller nesse contexto.
+
+*Depois do templade do duende devidamente instalado, vamos precisar baixar as dependencias do nuget.
+em especifico, os pacotes do Duente IdentityServer , Identity, e Identity UI.
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+*Adição do DbContext ao Identity Server
+
+
+Começamos criando uma classe para representar nosso Usuario padrão dentro do sistema, será chamada de ApplicationUser e vai herdar de IdentityUser
+tanto ela, quando a classe de Context ficarão dentro da pasta Model, a classe de context é bem parecida com a utilizada com o EntityFramework,
+porém ao inves de herdar de DbContext, vamos herdar de IdentityDbContext
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Implementando a classe IdentityConfiguration
+
+*Essa será uma classe static que vai conter as configurações do IdentityServer
+
+//Essa classe contem a configuração dos IdentityResources, começamos setando uma lista de IdentityResource
+
+* Basicamente IdentityResource é um tipo que representa um grupo de claims
+que podem ser solicitadas passando um parametro de escopo, no geral são recursos a serem protegidos pelo IdentityServer como os dados do usuario, ou a propria
+API como um todo.
+
+// Depois setamos uma lista de ApiScope 
+
+* ApiScope são recursos que um client pode acessar, no nosso caso é o webapp MVC geekShopping.Web, pois ele é quem vai acessar o IdentityServer
+para obter os tokens que serão utilizados para consumir os demais serviços.
+Existem dois tipos de scope o IdentityScope e o ResourceScope. O IdentityScope contém o objeto com as informações do proprio perfil,
+por exemplo: nome, sobrenome, username, email.  
+Um Scope é utilizado por um client.. Portanto, vamos precisar criar nosso(s) client's 
+
+
+//Por ultimo, vamos criar a lista de Client 
+
+*Client é um componente de software que solicita um token para o IdentityServer, assim podendo identificar um usuario dessa forma, permitindo
+ou não o acesso a algum recurso.
+O objeto cliente tem algumas propriedades, as que vamos setar inicialmente são as seguintes:
+
+ ClientId = "client", // deve ser unico para cada client 
+ 
+ ClientSecrets = { new Secret("my_secret".Sha256()) },  // ClientSecrets, recebe um objeto Secret() que recebe uma string encriptada com Sha256,
+ é a chave utilizada para encriptar e descriptar o token.
+ 
+ AllowedGrantTypes = GrantTypes.ClientCredentials, //AllowedGrantTypes, GrantTypes é um tipo que representa tipos de concessão do client 
+ para com o identityServer, no caso AllowedGrantTypes = GrantTypes.ClientCredentials define que será necessário a utilização 
+ das credenciais do usuario.  refere-se à maneira como um aplicativo obtém um token de acesso
+ 
+ AllowedScopes = {"read", "write", "profile"} //AllowedScopes, passamos quais scope's esse client terá acesso, como nossa API fornece um CRUD de produtos,
+ inicialmente só precisamos de read, write e profile, profile para ter acesso a nosso perfil com os dados de usuario.
+
+public static class IdentityConfiguration
+    {
+        public const string ADMIN = "Admin";
+        public const string CUSTOMER = "Customer";
+
+        public static IEnumerable<IdentityResource> IdentityResources =>
+            new List<IdentityResource> 
+            {
+                new IdentityResources.OpenId(),
+                new IdentityResources.Email(),
+                new IdentityResources.Profile()
+            };
+
+        public static IEnumerable<ApiScope> ApiScopes =>
+            new List<ApiScope>
+            { 
+                new ApiScope("geek_shopping", "GeekShooping Server"),
+                new ApiScope(name: "read", "Read data"),
+                new ApiScope(name: "write", "Write data"),
+                new ApiScope(name: "delete", "Delete data"),
+            };
+
+        public static IEnumerable<Client> Clients =>
+            new List<Client> 
+            {
+                new Client
+                {
+                    ClientId = "client",
+                    ClientSecrets = { new Secret("my_secret".Sha256()) },
+                    AllowedGrantTypes = GrantTypes.ClientCredentials,
+                    AllowedScopes = {"read", "write", "profile"}
+                }
+            };
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Criando client mais especifico.
+
+//Criamos um client para o GeekShooping.Web
+- Definimos o clientId
+- Definimos a ClientSecret com {new Secret("secret".Sha256())}
+- Definimos o AllowedGrantTypes utilizando GrantTypes.Code //GrantTypes.Code Define o flow de autenticação como Authorization Code
+O usuário é redirecionado de volta a aplicação que fez a requisição para o IdentityServer com um código de autorização na query string
+O aplicativo troca o código de autorização por um token de acesso.
+- Definimos a RedirectUris que é o endereço para onde o token deve ser retornado.
+- Definimos a PostLogoutRedirectUris que é a uri para onde a aplicação será redirecionada apos o logout
+- Definimos o AllowedScopes, que é uma List<string> contendo a string corresponde aos ApiScopes que queremos  que o client tenha acesso,
+tabém utilizamos alguns StandardScopes que o IdentityServer pre definiu, como OpenId, Profile e Email.
+
+
+
+ new Client
+    {
+        ClientId = "geek_shopping",
+        ClientSecrets = { new Secret("my_secret".Sha256()) },
+        AllowedGrantTypes = GrantTypes.Code,
+        RedirectUris = {"http://localhost:12032/sigin-oidc"},
+        PostLogoutRedirectUris = {"http://localhost:12032/signout-callback-oidc"},
+        AllowedScopes = new List<string> 
+        {
+            IdentityServerConstants.StandardScopes.OpenId,
+            IdentityServerConstants.StandardScopes.Profile,
+            IdentityServerConstants.StandardScopes.Email,
+            "geek_shopping"
+        }
+    }
+	
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+*Resumo sobre o IdentityServer: 
+
+Até o momento, começamos baixando os pacotes necessários para trabalhar com o Identity/IdentityServer Duende e com o EntityFramework.
+
+1º Criamos a classe de context do banco que será responsavel por gerar o banco de dados onde o Identity vai criar as tabelas.
+	
+	**Diferente dos context do EFCore, herdados de IdentityDbContext<IdentityUser>
+  public class SqlServerContext : IdentityDbContext<ApplicationUser>
+    {
+        public SqlServerContext(DbContextOptions<SqlServerContext> opt) : base(opt) { }
+
+    }
+	
+2º Criamos a classe de configuração do IdentityServer, Adicionando a lista de IdentityResource, ApiScope e Client's
+
+public static class IdentityConfiguration
+    {
+        public const string ADMIN = "Admin";
+        public const string CUSTOMER = "Customer";
+
+        public static IEnumerable<IdentityResource> IdentityResources =>
+            new List<IdentityResource> 
+            {
+                new IdentityResources.OpenId(),
+                new IdentityResources.Email(),
+                new IdentityResources.Profile()
+            };
+
+        public static IEnumerable<ApiScope> ApiScopes =>
+            new List<ApiScope>
+            { 
+                new ApiScope("geek_shopping", "GeekShooping Server"),
+                new ApiScope(name: "read", "Read data"),
+                new ApiScope(name: "write", "Write data"),
+                new ApiScope(name: "delete", "Delete data"),
+            };
+
+        public static IEnumerable<Client> Clients =>
+            new List<Client> 
+            {
+                new Client
+                {
+                    ClientId = "client",
+                    ClientSecrets = { new Secret("my_secret".Sha256()) },
+                    AllowedGrantTypes = GrantTypes.ClientCredentials,
+                    AllowedScopes = {"read", "write", "profile"}
+                },
+				
+				new Client
+				{
+					ClientId = "geek_shopping",
+					ClientSecrets = { new Secret("my_secret".Sha256()) },
+					AllowedGrantTypes = GrantTypes.Code,
+					RedirectUris = {"http://localhost:12032/sigin-oidc"},
+					PostLogoutRedirectUris = {"http://localhost:12032/signout-callback-oidc"},
+					AllowedScopes = new List<string> 
+					{
+						IdentityServerConstants.StandardScopes.OpenId,
+						IdentityServerConstants.StandardScopes.Profile,
+						IdentityServerConstants.StandardScopes.Email,
+						"geek_shopping"
+					}
+				}
+            };
+
+3º Agora precisamos adicionar na classe Startup as configurações do EfCore e do Identity
+
+// add EntityFramework context
+builder.Services.AddDbContext<SqlServerContext>(opt =>
+    opt.UseSqlServer(builder.Configuration.GetConnectionString("data"))
+);
+
+// Add Configs for Identity
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<SqlServerContext>()
+    .AddDefaultTokenProviders();
+	
+
+4º Agora adicionamos as configurações para o IdentityServer
+
+var identityBuilder = builder.Services.AddIdentityServer(opt =>
+    {
+        opt.Events.RaiseErrorEvents = true;
+        opt.Events.RaiseInformationEvents = true;
+        opt.Events.RaiseFailureEvents = true;
+        opt.Events.RaiseSuccessEvents = true;
+        opt.EmitStaticAudienceClaim = true;
+    }).AddInMemoryIdentityResources(IdentityConfiguration.IdentityResources)
+      .AddInMemoryApiScopes(IdentityConfiguration.ApiScopes)
+      .AddInMemoryClients(IdentityConfiguration.Clients)
+      .AddAspNetIdentity<ApplicationUser>();
+
+identityBuilder.AddDeveloperSigningCredential();
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+Configurando Https 
+Utilizando  app.UseHttpsRedirection(); dentro da Startup no metodo Configure, logo após a verificação do ambiente.
+Dentro de todos os serviços. 
+
+Depois dentro de cada launchSettings.json, definimos um conjunto de portas para https/htpp e a porta ssl 
+exemplo: 
+
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:22000",
+      "sslPort": 4440     //Porta SSL
+    }
+  },
+  "profiles": {
+    "GeekShopping.ProductAPI": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "applicationUrl": "https://localhost:4440;http://localhost:4441",  //Conjunto de portas Https/Http 
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+	 
+E depois precisamos conferir o apontamento de portas dentro dos nossos serviços, pois acabamos de altera-las.
+
+Exemplo: os caminhos dentro de appsettings.json no caso dos serviços que fazem requisições http para outros, e na configuração dos client's 
+na RedirectUris.
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+*Depois de tudo configurado, criamos e rodamos as migrations.
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+*Agora vamos criar um "serviço" para popular a tabela aspnetusers com um usuario padrão e um usuario admin.
+
+ public class DbInitializer : IDbInitializer
+    {
+        private readonly SqlServerContext _context;
+        private readonly UserManager<ApplicationUser> _user; 
+        private readonly RoleManager<IdentityRole> _role;
+
+        public DbInitializer(SqlServerContext context, UserManager<ApplicationUser> user, RoleManager<IdentityRole> role)
+        {
+            _context = context;
+            _user = user;
+            _role = role;
+        }
+
+        public void Initialize()
+        {
+            if (_role.FindByNameAsync(IdentityConfiguration.ADMIN).Result != null) return;
+            _role.CreateAsync(new IdentityRole(
+                IdentityConfiguration.ADMIN)).GetAwaiter().GetResult();
+            _role.CreateAsync(new IdentityRole(
+                IdentityConfiguration.CLIENT)).GetAwaiter().GetResult();
+
+            
+            ApplicationUser admin = new ApplicationUser()
+            {
+                UserName = "teste-admin",
+                Email = "teste-admin@teste.com",
+                EmailConfirmed = true,
+                PhoneNumber = "+55 (19) 12345-6789",
+                FirstName = "admin",
+                LastName = "admin",
+            };
+
+            _user.CreateAsync(admin, "Admin$123").GetAwaiter().GetResult();
+            _user.AddToRoleAsync(admin, IdentityConfiguration.ADMIN).GetAwaiter().GetResult();
+            var adminClaims = _user.AddClaimsAsync(admin, new Claim[] 
+            {
+                new Claim(JwtClaimTypes.Name, $"{admin.FirstName} {admin.LastName}"),
+                new Claim(JwtClaimTypes.GivenName, admin.FirstName),
+                new Claim(JwtClaimTypes.FamilyName, admin.LastName),
+                new Claim(JwtClaimTypes.Role, IdentityConfiguration.ADMIN)
+            }).Result;
+
+            ApplicationUser client = new ApplicationUser()
+            {
+                UserName = "teste-client",
+                Email = "teste-client@teste.com",
+                EmailConfirmed = true,
+                PhoneNumber = "+55 (19) 12345-6789",
+                FirstName = "client",
+                LastName = "client",
+            };
+
+            _user.CreateAsync(client, "Cleint$123").GetAwaiter().GetResult();
+            _user.AddToRoleAsync(client, IdentityConfiguration.CLIENT).GetAwaiter().GetResult();
+            var clientClaims = _user.AddClaimsAsync(client, new Claim[]
+            {
+                new Claim(JwtClaimTypes.Name, $"{client.FirstName} {client.LastName}"),
+                new Claim(JwtClaimTypes.GivenName, client.FirstName),
+                new Claim(JwtClaimTypes.FamilyName, client.LastName),
+                new Claim(JwtClaimTypes.Role, IdentityConfiguration.CLIENT)
+            }).Result;
+        }
+
+    }
+
+Agora dentro da Startup, adicionamos a injeção de dependencia no serviço 
+
+builder.Services.AddScoped<IDbInitializer, DbInitializer>();
+
+
+
+Depois no metodo configure, injetamos o serviço no constructor se for dotnet5 e chamamos o metodo para popular,
+ou se for dotnet6
+
+using (var serviceScope = app.Services.CreateScope()) 
+{
+    var service = serviceScope.ServiceProvider.GetService<IDbInitializer>();
+    service.Initialize();
+} 
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+Restringindo acesso apenas à usuarios logados.
+
+Primeiramente adicionamos as Annotations de Authorize nos controllers e depois precisas configurar pp.UseAuthentication() na classe Startup.
+
+*Antes disso vamos instalar alguns pacotes necessários.
+-Aspnetcore.Authentication
+-Aspnetcore.Authentication.OpenIdConnect
+-System.IdentityModel.Token.Jwt 
+
+Isso será feito em todos os nossos microsserviços que vão utilizar a autenticação.
+
+**Utilizamos Services.AddAuthentication() e passamos uma expressão lamda onde vamos definir algumas opções,
+depois vamos utilizar os metodos AddCookie() passando uma expressão lambda para definir o tempo de expiração do Cookie.
+Em seguida, vamos Adicionar o OpenIdConnect() passando "oidc" como primeiro parametro e como seguindo parametro vamos passar uma expressão
+lambda para setar as configurações, que de modo geral são:
+
+-Authority -> recebe a URL do Authentication Server, nesse caso a url do IdentityServer.
+-GetClaimsFromUserInfoEndpoint -> é um bool que define se vamos pegar as Claims do EndPoint.
+-ClientId e ClientSecret são os que definimos na configuração do Client em especifico, é necessario que sejam os mesmos definidos para o client no IdentityServer
+-ResponseType -> ResponseType define de que forma o IdentityServer vai autenticar o Client, definimos no identityServer como GrantTypes.Code, portanto usamos "code".
+-ClaimActions -> ClaimActions.MapJsonKey() recebe como argumento três strings, referentes as claims que queremos mapear, como vamos trabalhar com a role e com os dados do usuario, mapeamos role e sub.
+-TokenValidationParameters -> define quais parametros serão utilizados para validar o token. 
+-Scope.Add -> recebe o APIScope definido no IdentityConfiguration. 
+-SaveTokens -> define se queremos salvar o token, é um bool.
+
+
+//authentication configuring
+builder.Services.AddAuthentication(opt => 
+{
+    opt.DefaultScheme = "Cookies";
+    opt.DefaultChallengeScheme = "oidc";
+})
+    .AddCookie("Cookies", c => c.ExpireTimeSpan = TimeSpan.FromMinutes(10))
+    .AddOpenIdConnect("oidc", opt => 
+    {
+        opt.Authority = builder.Configuration["ServiceUrls:IdentityServer"];
+        opt.GetClaimsFromUserInfoEndpoint = true;
+        opt.ClientId = "geek_shopping";
+        opt.ClientSecret = "my_secret";
+        opt.ResponseType = "code";
+        opt.ClaimActions.MapJsonKey("role", "role", "role");
+        opt.ClaimActions.MapJsonKey("sub", "sub", "sub");
+        opt.TokenValidationParameters.NameClaimType = "name";
+        opt.TokenValidationParameters.RoleClaimType = "name";
+        opt.Scope.Add("geek_shopping");
+        opt.SaveTokens = true;
+    });
+
+* Depois precisamos adicionar app.UseAuthentication() antes de app.UseAuthorization() dentro do metodo Configure();
+
+
+
+Configurando Authentication e Authorization na Api
+
+**A forma como o client é configurado é diferente de como a aplicação que exige a autenticação será configurada,
+definimos a forma que nossa api fará a autenticação, que será com Bearer, depois utilizamos o metodo AddJwtBearer e passsamos
+uma expressão lambda com as configurações, adicionando mais uma vez o Authority passando a Url do IdentityServer
+TokenValidationParameters recebe um objeto do tipo TokenValidationParameters onde vamos sertar a opção ValidateAudience como false.
+
+
+*Agora vamos definir a Autorization, passamos uma expressão lambda como argumento e utilizamos o metodo AddPolicy 
+passando qual será a politica de autorização, neste caso vamos usa "ApiScope", e como segundo argumento, outra expressão lambda 
+com RequireAuthenticatedUser() e RequireClaim() onde definimos "scope" e como segundo argumento o nome do scopo "geek_shopping".
+
+
+**Basicamente, definimos o Web App GeekShooping.Web como um dos Cliet's do IdentityServer e configuramos a autenticação e autorização da aplicação
+para atender esse perfil, porém a API, fornece um recurso que precisa de autenticação para ser utilizado, e a autenticação virá de um Client que solicitou o token 
+para o identityServer. a Claim que estamos definindo para autorizar o usuario é ser um token vindo do scopo "geek_shopping".
+
+
+//Configuriong authentication
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer(opt =>
+    {
+        opt.Authority = "https://localhost:4435/";
+        opt.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateAudience = false
+        };
+    });
+
+//Configuriong authorization
+builder.Services.AddAuthorization(opt =>
+    {
+        opt.AddPolicy("ApiScope", policy =>
+        {
+            policy.RequireAuthenticatedUser();
+            policy.RequireClaim("scope", "geek_shopping");
+        });
+    });
+
+
+
+**Adicionando configurações do swagger
+
+Passamos uma expressão lambda para AddSwaggerGen
+E Utilizamos os seguintes metodos.
+.EnableAnnotations();
+.AddSecurityDefinition() -> passamos Bearer como primeiro argumento e um objeto do tipo OpenApiSecurityScheme como seguindo, 
+depois setamos algumas propriedades desse objeto, Description, Name, In -> define onde os parametros informados serão enviados, como AddSecurityDefinition
+define configurações sobre um Dialog ou popup ou modal que o Swagger apresenta para inserirmos a autorização(token) antes de tentar fazer as requisições, pois diferente do postman
+não podemos setar os headers nas requisições do swagger. Type define o tipo de SecurityScheme e Scheme informa mais uma vez "Bearer".
+
+
+Depois vamos chamar o metodo AddSecurityRequirement() e passar como argumento um objeto do tipo OpenApiSecurityRequirement,
+onde vamos passar dentro da definição das {} um objeto do tipo OpenApiSecurityScheme e definir algumas propriedades.
+- Reference -> vai receber um objeto do tipo OpenApiReference, mais uma vez informando o SecurityScheme e Id recebendo "Bearer"
+- Scheme -> vai receber "oauth2" para indicar qual o esquema utilizado pelo openAPI
+- Name -> recebe Bearer e In recebe ParameterLocation.Header, informando onde essas informações serão enviadas na requisição.
+e por fim, passamos uma List<string>.
+
+
+
+builder.Services.AddSwaggerGen(c => 
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "GeekShooping.ProductAPI", Version = "v1" });
+    c.EnableAnnotations();
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme 
+    {
+        Description = @"Enter 'Bearer' [space] and your token!",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type =  ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                },
+                Scheme = "oauth2",
+                Name = "Bearer",
+                In = ParameterLocation.Header
+            },
+            new List<string>()
+        }
+    });
+});
+
+------------------------------------------------------------------------------------------------------------------------------------------
+
+Implementando o redirecinamento para a tela de Login.
